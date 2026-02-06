@@ -1,25 +1,27 @@
 import { useParams, Link, Navigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { 
-  ArrowLeft, 
-  Star, 
-  Check, 
-  ShoppingCart, 
+import {
+  ArrowLeft,
+  Star,
+  Check,
+  ShoppingCart,
   ExternalLink,
   Share2,
   Heart,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  CheckCircle
 } from "lucide-react";
 import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TemplateCard } from "@/components/templates/TemplateCard";
-import { 
-  getTemplateBySlug, 
-  getRelatedTemplates, 
-  formatPrice 
+import { useCart } from "@/contexts/CartProvider";
+import {
+  getTemplateBySlug,
+  getRelatedTemplates,
+  formatPrice
 } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +53,7 @@ export default function TemplateDetail() {
   const { slug } = useParams<{ slug: string }>();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
+  const { addItem, isInCart } = useCart();
 
   const template = slug ? getTemplateBySlug(slug) : undefined;
 
@@ -61,13 +64,13 @@ export default function TemplateDetail() {
   const relatedTemplates = getRelatedTemplates(template);
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => 
+    setCurrentImageIndex((prev) =>
       prev === template.previewImages.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => 
+    setCurrentImageIndex((prev) =>
       prev === 0 ? template.previewImages.length - 1 : prev - 1
     );
   };
@@ -108,7 +111,7 @@ export default function TemplateDetail() {
                   alt={`${template.title} preview ${currentImageIndex + 1}`}
                   className="w-full h-full object-cover"
                 />
-                
+
                 {/* Navigation Arrows */}
                 {template.previewImages.length > 1 && (
                   <>
@@ -261,9 +264,23 @@ export default function TemplateDetail() {
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                <Button variant="hero" size="xl" className="flex-1">
-                  <ShoppingCart className="w-5 h-5 mr-2" />
-                  Beli Sekarang
+                <Button
+                  variant={isInCart(template.id) ? "outline" : "hero"}
+                  size="xl"
+                  className="flex-1"
+                  onClick={() => addItem(template)}
+                >
+                  {isInCart(template.id) ? (
+                    <>
+                      <CheckCircle className="w-5 h-5 mr-2 text-success" />
+                      Sudah di Keranjang
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="w-5 h-5 mr-2" />
+                      Beli Sekarang
+                    </>
+                  )}
                 </Button>
                 <Button variant="outline" size="xl">
                   <ExternalLink className="w-5 h-5 mr-2" />

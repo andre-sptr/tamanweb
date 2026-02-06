@@ -1,21 +1,32 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Search, Sun, Moon, ShoppingBag, User } from "lucide-react";
+import { Menu, X, ShoppingBag, User, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { Cart } from "@/components/Cart";
+import { MegaMenu } from "@/components/MegaMenu";
+import { SearchAutocomplete, SearchButton } from "@/components/SearchAutocomplete";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
   { href: "/", label: "Beranda" },
-  { href: "/templates", label: "Template" },
   { href: "/about", label: "Tentang" },
   { href: "/contact", label: "Kontak" },
+];
+
+const mobileCategories = [
+  { href: "/templates?category=Portfolio", label: "Portfolio" },
+  { href: "/templates?category=Landing%20Page", label: "Landing Page" },
+  { href: "/templates?category=SaaS", label: "SaaS" },
+  { href: "/templates?category=E-commerce", label: "E-commerce" },
 ];
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDark, setIsDark] = useState(false);
+  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -28,12 +39,9 @@ export function Navbar() {
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsMegaMenuOpen(false);
+    setShowMobileSearch(false);
   }, [location.pathname]);
-
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-    document.documentElement.classList.toggle("dark");
-  };
 
   return (
     <header
@@ -57,7 +65,25 @@ export function Navbar() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-1">
-          {navLinks.map((link) => (
+          {navLinks.filter(l => l.href === "/").map((link) => (
+            <Link
+              key={link.href}
+              to={link.href}
+              className={cn(
+                "px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200",
+                location.pathname === link.href
+                  ? "text-primary bg-primary/10"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              )}
+            >
+              {link.label}
+            </Link>
+          ))}
+
+          {/* Mega Menu for Templates */}
+          <MegaMenu isOpen={isMegaMenuOpen} onOpenChange={setIsMegaMenuOpen} />
+
+          {navLinks.filter(l => l.href !== "/").map((link) => (
             <Link
               key={link.href}
               to={link.href}
@@ -75,27 +101,27 @@ export function Navbar() {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-2">
+          {/* Search Autocomplete */}
+          <div className="w-64">
+            <SearchAutocomplete />
+          </div>
+
+          <ThemeSwitcher />
+          <Cart />
           <Button variant="ghost" size="icon" asChild>
-            <Link to="/templates">
-              <Search className="w-5 h-5" />
+            <Link to="/admin/login">
+              <User className="w-5 h-5" />
             </Link>
-          </Button>
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </Button>
-          <Button variant="ghost" size="icon">
-            <User className="w-5 h-5" />
           </Button>
           <Button asChild>
             <Link to="/templates">Jelajahi Template</Link>
           </Button>
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Actions */}
         <div className="flex md:hidden items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </Button>
+          <Cart />
+          <ThemeSwitcher />
           <Button
             variant="ghost"
             size="icon"
@@ -116,6 +142,12 @@ export function Navbar() {
             className="md:hidden overflow-hidden glass border-t border-border"
           >
             <nav className="container py-4 flex flex-col gap-2">
+              {/* Mobile Search */}
+              <div className="mb-2">
+                <SearchAutocomplete onClose={() => setShowMobileSearch(false)} />
+              </div>
+
+              {/* Main Links */}
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -130,9 +162,33 @@ export function Navbar() {
                   {link.label}
                 </Link>
               ))}
-              <div className="pt-2 border-t border-border mt-2">
+
+              {/* Template Categories */}
+              <div className="py-2">
+                <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Template Kategori
+                </div>
+                {mobileCategories.map((cat) => (
+                  <Link
+                    key={cat.href}
+                    to={cat.href}
+                    className="flex items-center justify-between px-4 py-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  >
+                    {cat.label}
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                ))}
+              </div>
+
+              <div className="pt-2 border-t border-border mt-2 space-y-2">
                 <Button className="w-full" asChild>
                   <Link to="/templates">Jelajahi Template</Link>
+                </Button>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link to="/admin/login">
+                    <User className="w-4 h-4 mr-2" />
+                    Admin Login
+                  </Link>
                 </Button>
               </div>
             </nav>
